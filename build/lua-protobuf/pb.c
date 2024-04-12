@@ -2190,6 +2190,21 @@ LUALIB_API int luaopen_pb_unsafe(lua_State *L) {
     return 1;
 }
 
+LUA_API int loadPbSchemeBinary(lua_State *L, const char *pointer, int length)
+{
+    lpb_State *LS = lpb_lstate(L);
+    pb_Slice slice;
+    slice.p = pointer;
+    slice.start = pointer;
+    slice.end = pointer + length;
+
+    int r = pb_load(&LS->local, &slice);
+    if (r == PB_OK) global_state = &LS->local;
+    lua_pushboolean(L, r == PB_OK);
+    lua_pushinteger(L, pb_pos(slice) + 1);
+
+    return 2;
+}
 
 PB_NS_END
 
