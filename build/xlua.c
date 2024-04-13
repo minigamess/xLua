@@ -12,6 +12,7 @@
 #include "lualib.h"
 #include "lauxlib.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include "i64lib.h"
@@ -1242,5 +1243,273 @@ LUA_API void luaopen_xlua(lua_State *L) {
 	luaL_register(L, "xlua", xlualib);
     lua_pop(L, 1);
 #endif
+}
+
+int split_ss(lua_State *L)
+{
+    int ret; // w20
+
+    if ( !lua_gettop(L) || !lua_isstring(L, 1) || !lua_isstring(L, 2) )
+        return 0;
+    ret = 1;
+    const char * str = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+    const char * separator = luaL_checklstring(L, 2, &separator_len);
+    char * pch1 = strstr(str, separator);
+    if ( !pch1 )
+    {
+        LABEL_10:
+        lua_pushstring(L, str);
+        return ret;
+    }
+    lua_pushlstring(L, str, pch1 - str);
+    str = &pch1[separator_len];
+    char * pch2 = strstr(str, separator);
+    if ( !pch2 )
+    {
+        ret = 2;
+        goto LABEL_10;
+    }
+    lua_pushlstring(L, str, pch2 - str);
+    return 2;
+}
+
+int split_ii(lua_State *L) {
+    if (!lua_gettop(L) || !lua_isstring(L, 1) || !lua_isstring(L, 2))
+        return 0;
+    const char *str = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+    const char *separator = luaL_checklstring(L, 2, &separator_len);
+
+    if (strlen(str) <= 0) {
+        return 0;
+    }
+
+    char *pch1 = strstr(str, separator);
+    if (!pch1) {
+        lua_pushinteger(L, (lua_Integer) strtod(str, NULL));
+        return 1;
+    } else {
+        lua_pushinteger(L, (lua_Integer) strtod(str, NULL));
+        str = &pch1[separator_len];
+
+        if(strlen(str) <= 0) {
+            return 1;
+        }
+
+        lua_pushinteger(L, (lua_Integer) strtod(str, NULL));
+        return 2;
+    }
+}
+
+int split_ff (lua_State *L) {
+    if (!lua_gettop(L) || !lua_isstring(L, 1) || !lua_isstring(L, 2))
+        return 0;
+    const char *str = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+    const char *separator = luaL_checklstring(L, 2, &separator_len);
+
+    if (strlen(str) <= 0) {
+        return 0;
+    }
+
+    char *pch1 = strstr(str, separator);
+    if (!pch1) {
+        lua_pushnumber(L, strtof(str, NULL));
+        return 1;
+    } else {
+        lua_pushnumber(L, strtof(str, NULL));
+        str = &pch1[separator_len];
+
+        if(strlen(str) <= 0) {
+            return 1;
+        }
+
+        lua_pushnumber(L, strtof(str, NULL));
+        return 2;
+    }
+}
+
+int split_ss_array (lua_State *L) {
+    lua_Integer v2; // x22
+    const char *v3; // x20
+    const char *v4; // x21
+    char *v5; // x0
+    char *v6; // x23
+    lua_Integer v7; // x22
+    unsigned int v8; // w25
+
+    v2 = 1LL;
+    v3 = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+
+    v4 = luaL_checklstring(L, 2, &separator_len);
+    lua_createtable(L, 0, 0);
+    v5 = strstr(v3, v4);
+    if ( v5 )
+    {
+        v6 = v5;
+        v7 = 1LL;
+        do
+        {
+            lua_pushlstring(L, v3, v6 - v3);
+            v8 = v7 + 1;
+            lua_rawseti(L, -2, v7);
+            v3 = &v6[separator_len];
+            v6 = strstr(&v6[separator_len], v4);
+            ++v7;
+        }
+        while ( v6 );
+        v2 = v8;
+    }
+    lua_pushstring(L, v3);
+    lua_rawseti(L, -2, v2);
+    return 1;
+}
+
+int split_ii_array (lua_State *L) {
+    lua_Integer v2; // x22
+    const char *v3; // x20
+    const char *v4; // x21
+    char *v5; // x0
+    char *v6; // x23
+    lua_Integer v7; // x22
+    unsigned int v8; // w25
+
+    v2 = 1LL;
+    v3 = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+
+    v4 = luaL_checklstring(L, 2, &separator_len);
+    lua_createtable(L, 0, 0);
+
+    if ( strlen(v3) <= 0 )
+        return 1;
+
+    v5 = strstr(v3, v4);
+    if ( v5 )
+    {
+        v6 = v5;
+        v7 = 1LL;
+        do
+        {
+            lua_pushinteger(L, (lua_Integer)strtod(v3, NULL));
+            v8 = v7 + 1;
+            lua_rawseti(L, -2, v7);
+            v3 = &v6[separator_len];
+            v6 = strstr(&v6[separator_len], v4);
+            ++v7;
+        }
+        while ( v6 );
+        v2 = v8;
+    }
+    lua_pushinteger(L, (lua_Integer)strtod(v3, NULL));
+    lua_rawseti(L, -2, v2);
+    return 1;
+}
+
+int split_ff_array (lua_State *L) {
+    lua_Integer v2; // x22
+    const char *v3; // x20
+    const char *v4; // x21
+    char *v5; // x0
+    char *v6; // x23
+    lua_Integer v7; // x22
+    unsigned int v8; // w25
+
+    v2 = 1LL;
+    v3 = luaL_checklstring(L, 1, NULL);
+    size_t separator_len = 0;
+
+    v4 = luaL_checklstring(L, 2, &separator_len);
+    lua_createtable(L, 0, 0);
+
+    if ( strlen(v3) <= 0 )
+        return 1;
+
+    v5 = strstr(v3, v4);
+    if ( v5 )
+    {
+        v6 = v5;
+        v7 = 1LL;
+        do
+        {
+            lua_pushnumber(L, strtof(v3, NULL));
+            v8 = v7 + 1;
+            lua_rawseti(L, -2, v7);
+            v3 = &v6[separator_len];
+            v6 = strstr(&v6[separator_len], v4);
+            ++v7;
+        }
+        while ( v6 );
+        v2 = v8;
+    }
+    lua_pushnumber(L, strtod(v3, NULL));
+    lua_rawseti(L, -2, v2);
+    return 1;
+}
+
+int split_count(lua_State *L)
+{
+    lua_Integer v3; // x21
+    const char *v4; // x22
+    const char *v5; // x20
+    char *v6; // x0
+    size_t v7; // x22
+    size_t v8[2]; // [xsp+0h] [xbp-40h] BYREF
+
+    if ( !lua_gettop(L) )
+        return 0;
+    if ( !lua_isstring(L, 1) )
+        return 0;
+    if ( !lua_isstring(L, 2) )
+        return 0;
+    v3 = 1LL;
+    v4 = luaL_checklstring(L, 1, 0LL);
+    v8[0] = 0LL;
+    v5 = luaL_checklstring(L, 2, v8);
+    v6 = strstr(v4, v5);
+    if ( v6 )
+    {
+        v7 = v8[0];
+        v3 = 1;
+        do
+        {
+            v3 = v3 + 1;
+            v6 = strstr(&v6[v7], (const char *)v5);
+        }
+        while ( v6 );
+    }
+    lua_pushinteger(L, v3);
+    return 1;
+}
+
+LUA_API int luaopen_split(lua_State *L) {
+    lua_getglobal(L, "string");
+    lua_pushcclosure(L, split_ss, 0);
+    lua_setfield(L, -2, "split_ss");
+    lua_pushcclosure(L, split_ii, 0);
+    lua_setfield(L, -2, "split_ii");
+    lua_pushcclosure(L, split_ff, 0);
+    lua_setfield(L, -2, "split_ff");
+    lua_pushcclosure(L, split_ss_array, 0);
+    lua_setfield(L, -2, "split_ss_array");
+    lua_pushcclosure(L, split_ii_array, 0);
+    lua_setfield(L, -2, "split_ii_array");
+    lua_pushcclosure(L, split_ff_array, 0);
+    lua_setfield(L, -2, "split_ff_array");
+//    lua_pushcclosure(L, split_ss_map, 0);
+//    lua_setfield(L, -2, "split_ss_map");
+//    lua_pushcclosure(L, split_is_map, 0);
+//    lua_setfield(L, -2, "split_is_map");
+//    lua_pushcclosure(L, split_si_map, 0);
+//    lua_setfield(L, -2, "split_si_map");
+//    lua_pushcclosure(L, split_sf_map, 0);
+//    lua_setfield(L, -2, "split_sf_map");
+//    lua_pushcclosure(L, split_if_map, 0);
+//    lua_setfield(L, -2, "split_if_map");
+    lua_pushcclosure(L, split_count, 0);
+    lua_setfield(L, -2, "split_count");
+    return 0;
 }
 
