@@ -133,7 +133,7 @@ jobs:
           path: ./build/plugin_luajit/**/*
           name: plugin_luajit_ios
   osx:
-    runs-on: macos-11
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
